@@ -1,0 +1,68 @@
+
+//Uma função assíncrona em JavaScript é aquela que realiza tarefas demoradas — 
+//como buscar dados em uma API ou ler arquivos — em segundo plano, 
+//permitindo que o restante do código continue rodando sem travar ou congelar a tela do usuário
+
+//Json é um formato de texto leve usado para guardar e enviar dados. 
+// Em JavaScript, ele se parece com um objeto comum, mas na verdade é uma string (texto) com regras rígidas
+
+
+
+// Função pra buscar a lista de produtos que tá salva lá no banco de dados
+async function buscarDoBanco() {
+
+    // Faz o pedido pro backend e o "await" espera ele responder
+   // await fetch serve para fazer uma requisição de rede (como buscar dados em uma API) 
+   // de forma que o código pausa e espera o resultado chegar antes de ir para a linha seguinte. 
+
+    const resposta = await fetch("http://localhost:8080/produtos");
+    
+    // Transforma a resposta do servidor em um formato de lista que o JS entende. 
+    // await resposta.json(); serve para esperar o computador ler os dados de uma resposta de rede
+    // e transformá-los em um objeto que a gente consegue usar no código. 
+    // O comando await pausa a função até que o método .json() termine de ler e converter os dados em formato JSON
+    const produtos = await resposta.json();
+
+    // Pega a lista lá da tela do site (a tag <ul> ou <ol> do HTML) usando o ID dela
+    const lista = document.getElementById("lista-produtos");
+    
+    // Esvazia a lista na tela pra não repetir os itens antigos na hora de desenhar os novos
+    lista.innerHTML = "";
+
+    // Passa de produto em produto e vai adicionando uma linha (<li>) nova na lista da tela
+    // produtos.forEach significa que a variável produtos é uma lista (um array) e o método
+    //  forEach  está sendo usado para passar por cima de cada item dessa lista,
+    // executando uma ação ou função para cada produto individual.
+    produtos.forEach(nomeProduto => {
+
+//Essa linha de código adiciona um novo item de lista (<li>) contendo o valor da variável
+// nomeProduto ao final do conteúdo HTML existente no elemento chamado lista, sem apagar o que
+//  já estava lá
+        lista.innerHTML += `<li>${nomeProduto}</li>`;
+    });
+}
+
+// Função pra pegar o que você digitou na tela e mandar salvar no banco
+async function salvarNoBanco() {
+    // Pega a caixinha de texto da tela onde a pessoa digita
+    const input = document.getElementById("campo-nome");
+    
+    // Pega o texto exato que tá escrito dentro dessa caixinha
+    const textoDigitado = input.value;
+
+    // Monta o "pacotinho" de dados pra enviar, com a chave "nome"
+    const objetoProduto = { nome: textoDigitado };
+
+    // Manda esse pacotinho pro servidor usando o método POST (usado pra criar/salvar coisas)
+    await fetch("http://localhost:8080/produtos", {
+        method: "POST", // Avisa o servidor: "ó, tô te mandando algo novo!"
+        headers: { "Content-Type": "application/json" }, // Avisa que o formato é JSON
+        body: JSON.stringify(objetoProduto) // Converte o objeto JS pra texto puro pra conseguir enviar
+    });
+
+    // Limpa a caixinha de texto pro usuário não precisar apagar na mão pra digitar o próximo
+    input.value = "";
+    
+    // Chama a função de buscar de novo pra lista da tela atualizar sozinha com o novo item!
+    buscarDoBanco();
+}
